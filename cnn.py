@@ -24,4 +24,36 @@ class ConvNet(nn.Module):
                                out_channels= self.conv2.out_channels*2,
                                kernel_size= 3, padding= 1, stride= 1)
 
+        self.bn3 = nn.BatchNorm2d(num_features=self.conv3.out_channels)
+        self.relu3 = nn.ReLU()
+        #size = (batch_size, 64, 37, 37)
+        self.maxpool3 = nn.MaxPool2d(kernel_size=2)
+        #size = (batch_size, 64, 18, 18)
+
+        self.flatten = nn.Flatten()
+        #shape = (batch_size, 64*18*18) = (batch_size, 20736)
+        self.fc1 = nn.Linear(in_features=self.conv3.out_channels * 18  *18,
+                             out_features=self.conv3.out_channels * 18 * 18 // 4)
+        self.relu4 = nn.ReLU()
+        self.dropout1 = nn.Dropout(0.5)
+        # Output shape = (batch_size, 5184)
+
+        self.fc2 = nn.Linear(in_features=self.fc1.out_features,
+                             out_features=self.fc1.out_features // 4)
+        
+        self.relu5 = nn.ReLU()
+        self.dropout2 = nn.Dropout(0.5)
+        #shape = (batch_Size, 1296)
+
+        self.fc3 = nn.Linear(in_features=self.fc2.out_features,
+                             out_features=self.fc2.out_features // 4)
+        self.relu6 = nn.ReLU()
+        self.dropout3 = nn.Dropout(0.5)
+
+        self.fc4 = nn.Linear(in_features=self.fc3.out_features,
+                             out_features=num_classes)
+        
+        #shape = (batch_size, 6)
+                             
+
 
