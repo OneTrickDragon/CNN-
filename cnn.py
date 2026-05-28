@@ -1,37 +1,27 @@
-import torch
-import torchvision
-from torchvision import transforms
-from torchvision.datasets import ImageFolder
-import matplotlib.pyplot as plt
-from torch.utils.data.dataloader import DataLoader
-from torch.utils.data import random_split
-from torchvision.utils import make_grid
+import torch.nn as nn
 
-data_dir = "input/seg_train/seg_train/"
-test_data_dir = "input/seg_test/seg_test"
+class ConvNet(nn.Module):
+    def __init__(self, num_classes = 6):
+        super(ConvNet, self).__init__()
 
-dataset = ImageFolder(data_dir,transform = transforms.Compose([
-    transforms.Resize((150,150)),transforms.ToTensor()
-]))
+        self.conv1 = nn.Conv2d(in_channels=3,
+                               out_channels=16,
+                               kernel_size=3, stride=1, padding=1)
+        self.bn1 = nn.BatchNorm2d(num_features= self.conv1.out_channels)
+        self.relu = nn.ReLU()
+        #shape = (batch_size, 16, 150, 150)
+        self.maxpool1 = nn.MaxPool2d(kernel_size=2)
+        #shape = (batch_size, 16, 75, 75)
+        self.conv2 = nn.Conv2d(in_channels=16, out_channels= self.conv1.out_channels*2,
+                               kernel_size=3, stride=1, padding=1)
+        self.bn2 = nn.BatchNorm2d(num_features=self.conv2.out_channels)
+        self.relu2 = nn.ReLU()
+        #shape = (batch_Size, 32, 75, 75)
+        self.maxpool2 = nn.MaxPool2d(kernel_size=2)
+        #shape = (batch_size, 32, 37, 37)
 
-test_dataset = ImageFolder(test_data_dir,transforms.Compose([
-    transforms.Resize((150,150)),transforms.ToTensor()
-]))
+        self.conv3 = nn.Conv2d(in_channels= self.conv2.out_channels,
+                               out_channels= self.conv2.out_channels*2,
+                               kernel_size= 3, padding= 1, stride= 1)
 
-img, label = dataset[0]
-print(img.shape,label)
 
-def display_img(img,label):
-    print(f"Label : {dataset.classes[label]}")
-    plt.imshow(img.permute(1,2,0))
-
-batch_size = 128
-val_size = 2000
-train_size = len(dataset) - val_size 
-
-train_data,val_data = random_split(dataset,[train_size,val_size])
-print(f"Length of Train Data : {len(train_data)}")
-print(f"Length of Validation Data : {len(val_data)}")
-
-train_dl = DataLoader(train_data, batch_size, shuffle = True, num_workers = 4, pin_memory = True)
-val_dl = DataLoader(val_data, batch_size*2, num_workers = 4, pin_memory = True)
