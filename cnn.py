@@ -64,3 +64,11 @@ def forward(self, x):
 
     output = self.flatten(output)
     output = self.dropout1(self.relu4(self.fc1(output)))
+    output = self.dropout2(self.relu5(self.fc2(output)))
+    output = self.dropout3(self.relu6(self.fc3(output)))
+    output = self.fc4(output)
+
+    return output
+
+
+
