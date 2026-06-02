@@ -105,8 +105,84 @@ def train(model, train_loader, validation_loader, loss_fn, optimizer, num_epochs
                 os.remove(checkpoints_path + "checkpoint_" + str(bestEpoch) + "_best.pth")
                 torch.save(model.state_dict(), checkpoints_path + "checkpoint_" + str(i) + "_best.pth")
 
+                os.remove(log_dir + '/train_accuracies_epochs' + str(num_epochs) + '_bs' + str(batch_size) +
+                            '_lr' + str(learning_rate) + '_bestEpoch' + str(bestEpoch) + '.txt')
+                os.remove(log_dir + '/val_accuracies_epochs' + str(num_epochs) + '_bs' + str(batch_size) +
+                            '_lr' + str(learning_rate) + '_bestEpoch' + str(bestEpoch) + '.txt')
+                os.remove(log_dir + '/train_losses_epochs' + str(num_epochs) + '_bs' + str(batch_size) +
+                            '_lr' + str(learning_rate) + '_bestEpoch' + str(bestEpoch) + '.txt')
+                os.remove(log_dir + '/val_losses_epochs' + str(num_epochs) + '_bs' + str(batch_size) +
+                            '_lr' + str(learning_rate) + '_bestEpoch' + str(bestEpoch) + '.txt')
+                
+                print(f'\nAccuracy increased ({max_val_acc*100:.6f}% ---> {(val_acc / len(validation_loader))*100:.6f}%) \nModel saved')
+
+                max_val_acc = val_acc/len(validation_loader)
+                bestEpoch = i
+
+            print("--------------------------------------------------------------")
+        
+            np.savetxt(log_dir + '/train_accuracies_epochs' + str(num_epochs) + '_bs' + str(batch_size) +
+                    '_lr' + str(learning_rate) + '_bestEpoch' + str(bestEpoch) + '.txt', np.array(train_acc))
+            np.savetxt(log_dir + '/val_accuracies_epochs' + str(num_epochs) + '_bs' + str(batch_size) +
+                    '_lr' + str(learning_rate) + '_bestEpoch' + str(bestEpoch) + '.txt', np.array(val_acc))
+            np.savetxt(log_dir + '/train_losses_epochs' + str(num_epochs) + '_bs' + str(batch_size) +
+                    '_lr' + str(learning_rate) + '_bestEpoch' + str(bestEpoch) + '.txt', np.array(train_losses))
+            np.savetxt(log_dir + '/val_losses_epochs' + str(num_epochs) + '_bs' + str(batch_size) +
+                    '_lr' + str(learning_rate) + '_bestEpoch' + str(bestEpoch) + '.txt', np.array(val_losses))
+            
+        plot_loss_acc(log_dir)
+
+if __name__ == "__main__":
+    
+
+    p = configargparse.ArgumentParser()
+    p.add_argument('--dataset_train', type=str, default='seg_train', help='Dataset train path.')
+    p.add_argument('--dataset_val', type=str, default='seg_test', help='Dataset validation path.')
+    p.add_argument('--log_dir', type=str, default='image_classification_ConvNet', help='Name of the folder to save the model.')
+    p.add_argument('--batch_size', type=int, default=128, help='Batch size.')
+    p.add_argument('--learning_rate', type=float, default=1e-3, help='Learning rate.')
+    p.add_argument('--num_epochs', type=int, default=20, help='Number of epochs.')
+    p.add_argument('--device', type=str, default='gpu', help='Choose the device: "gpu" or "cpu"')
+    opt = p.parse_args()
+
+    assert not (os.path.isdir(opt.log_dir)), 'The folder log_dir already exists, remove it or change it'
+
+    if opt.device == 'gpu' and torch.cuda.is_available():
+        device = torch.device("cuda:0")
+        print('Device assigned: GPU (' + torch.cuda.get_device_name(device) + ')\n')
+    else:
+        device = torch.device("cpu")
+        if not torch.cuda.is_available() and opt.device == 'gpu':
+            print('GPU not available, device assigned: CPU\n')
+        else:
+            print('Device assigned: CPU\n')
+
+    transformer = transforms.Compose([
+        transforms.Resize((150,150)),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),  # 0-255 to 0-1, numpy to tensors
+        # formula: output[channel] = (input[channel] - mean[channel]) / std[channel]
+        transforms.Normalize([0.5,0.5,0.5], # 0-1 to [-1,1]
+                            [0.5,0.5,0.5])
+    ])
 
 
-
+    train_loader = DataLoader(
+        torchvision.datasets.ImageFolder(opt.dataset_train, transform=transformer),
+        batch_size=opt.batch_size, shuffle=True
+    )
+    
+    test_loader = DataLoader(
+        torchvision.datasets.ImageFolder(opt.dataset_val, transform=transformer),
+        batch_size=opt.batch_size, shuffle=True
+    )
+    
+    checkpoints_path = create_model_folder(opt.log_dir)  # Create model folder to save checkpoints
+    model = ConvNet(num_classes=len(os.listdir(opt.dataset_train))).to(device)
+    optimiser = torch.optim.Adam(model.parameters(), lr=opt.learning_rate, weight_decay=1e-4)
+    loss_fn = nn.CrossEntropyLoss()
+    
+    train(model, train_loader, test_loader, loss_fn, optimiser, opt.num_epochs,
+          opt.batch_size, opt.learning_rate, device, opt.log_dir, checkpoints_path)
 
 
