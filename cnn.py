@@ -57,18 +57,18 @@ class ConvNet(nn.Module):
                              
 
 
-def forward(self, x):
-    output = self.maxpool1(self.relu1(self.bn1(self.conv1(x))))
-    output = self.maxpool2(self.relu2(self.bn2(self.conv2(x))))
-    output = self.maxpool3(self.relu3(self.bn3(self.conv3(x))))
+    def forward(self, x):
+        output = self.maxpool1(self.relu(self.bn1(self.conv1(x))))
+        output = self.maxpool2(self.relu2(self.bn2(self.conv2(x))))
+        output = self.maxpool3(self.relu3(self.bn3(self.conv3(x))))
 
-    output = self.flatten(output)
-    output = self.dropout1(self.relu4(self.fc1(output)))
-    output = self.dropout2(self.relu5(self.fc2(output)))
-    output = self.dropout3(self.relu6(self.fc3(output)))
-    output = self.fc4(output)
+        output = self.flatten(output)
+        output = self.dropout1(self.relu4(self.fc1(output)))
+        output = self.dropout2(self.relu5(self.fc2(output)))
+        output = self.dropout3(self.relu6(self.fc3(output)))
+        output = self.fc4(output)
 
-    return output
+        return output
 
 
 

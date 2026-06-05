@@ -136,9 +136,9 @@ if __name__ == "__main__":
     
 
     p = configargparse.ArgumentParser()
-    p.add_argument('--dataset_train', type=str, default='seg_train', help='Dataset train path.')
-    p.add_argument('--dataset_val', type=str, default='seg_test', help='Dataset validation path.')
-    p.add_argument('--log_dir', type=str, default='image_classification_ConvNet', help='Name of the folder to save the model.')
+    p.add_argument('--dataset_train', type=str, default='input/seg_train', help='Dataset train path.')
+    p.add_argument('--dataset_val', type=str, default='input/seg_test', help='Dataset validation path.')
+    p.add_argument('--log_dir', type=str, default='image_classification', help='Name of the folder to save the model.')
     p.add_argument('--batch_size', type=int, default=128, help='Batch size.')
     p.add_argument('--learning_rate', type=float, default=1e-3, help='Learning rate.')
     p.add_argument('--num_epochs', type=int, default=20, help='Number of epochs.')
