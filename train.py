@@ -31,10 +31,10 @@ def train(model, train_loader, validation_loader, loss_fn, optimizer, num_epochs
     
     max_val_acc = 0.0
 
-    train_acc = []
+    train_accs = []
     train_losses = []
 
-    val_acc = []
+    val_accs = []
     val_losses = []
     bestEpoch = 0
 
@@ -86,8 +86,12 @@ def train(model, train_loader, validation_loader, loss_fn, optimizer, num_epochs
             loss = loss_fn(predictions, labels)
 
             val_acc += compute_accuracy(predictions, labels).item()
-            val_loss += loss.items()
+            val_loss += loss.item()
 
+        train_accs.append(train_acc / len(train_loader))
+        val_accs.append(val_acc/ len(validation_loader))
+        train_losses.append(train_loss / len(train_loader))
+        val_losses.append(val_loss / len(validation_loader))
 
         print(f'- Train Acc: {(train_acc / len(train_loader))*100:.2f}%')
         print(f'- Val Acc: {(val_acc / len(validation_loader))*100:.2f}%')
